@@ -29,23 +29,38 @@ app.post("/compare", (req, res) => {
   const viewport = VIEWPORT_MAP[viewportType] || VIEWPORT_MAP.desktop;
 
   const now = new Date();
-  const datetime = now.getFullYear().toString() +
-    (now.getMonth() + 1).toString().padStart(2, '0') +
-    now.getDate().toString().padStart(2, '0') + '-' +
-    now.getHours().toString().padStart(2, '0') +
-    now.getMinutes().toString().padStart(2, '0') +
-    now.getSeconds().toString().padStart(2, '0');
+  const datetime =
+    now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, "0") +
+    now.getDate().toString().padStart(2, "0") +
+    "-" +
+    now.getHours().toString().padStart(2, "0") +
+    now.getMinutes().toString().padStart(2, "0") +
+    now.getSeconds().toString().padStart(2, "0");
 
   // Update backstop.json with the provided URLs
   const backstopConfig = {
     id: "ui_comparison",
     viewports: [{ label: viewportType || "desktop", ...viewport }],
+    onBeforeScript: "puppet/onBefore.js",
+    onReadyScript: "puppet/onReady.js",
     scenarios: [
       {
         label: "UI Comparison",
+        cookiePath: "backstop_data/engine_scripts/cookies.json",
         url: testUrl,
         referenceUrl: referenceUrl,
+        readyEvent: "",
+        readySelector: "",
+        delay: 3000,
+        hideSelectors: [],
+        removeSelectors: [],
+        hoverSelector: "",
+        clickSelector: "",
+        postInteractionWait: 0,
         selectors: ["document"],
+        selectorExpansion: true,
+        expect: 0,
         misMatchThreshold: 0.1,
         requireSameDimensions: true,
       },
@@ -53,14 +68,19 @@ app.post("/compare", (req, res) => {
     paths: {
       bitmaps_reference: "backstop_data/bitmaps_reference/" + datetime,
       bitmaps_test: "backstop_data/bitmaps_test",
+      engine_scripts: "backstop_data/engine_scripts",
       html_report: "backstop_data/html_report",
-      json_report: "backstop_data/json_report",
+      ci_report: "backstop_data/ci_report",
     },
     report: ["browser"],
-    engine: "playwright",
-    engineOptions: { browser: "chromium", args: ["--no-sandbox"] },
+    engine: "puppeteer",
+    engineOptions: {
+      args: ["--no-sandbox"],
+    },
     asyncCaptureLimit: 5,
     asyncCompareLimit: 50,
+    debug: true,
+    debugWindow: true,
   };
 
   fs.writeFileSync(
