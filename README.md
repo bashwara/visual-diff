@@ -10,23 +10,24 @@ A simple tool leveraging on [BackstopJS](https://github.com/garris/BackstopJS) t
 
 ### Local run
 
-1. Install playwright.
-
-```
-npx install playwright
-```
-
-2. Install dependencies for both server and client.
+1. Install dependencies for both server and client.
 ```
 npm install
 ```
 
-3. Run the server.
+2. Run the server.
 ```
 node server.js
 ```
 
-4. Run the client.
+3. Run the client.
 ```
 npm run dev
 ```
+
+#### To use with web pages where authorization is required:
+
+1. Extract the related cookies from your primary browser. 
+    - You can use the [EditThisCookie (V3)](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol) extension to easily extract the cookies in the required format.
+
+2. Include the cookies in the `/server/backstop_data/engine_scripts/cookies.json` file.

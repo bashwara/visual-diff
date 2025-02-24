@@ -52,7 +52,7 @@ app.post("/compare", (req, res) => {
         referenceUrl: referenceUrl,
         readyEvent: "",
         readySelector: "",
-        delay: 3000,
+        delay: 5000,
         hideSelectors: [],
         removeSelectors: [],
         hoverSelector: "",
