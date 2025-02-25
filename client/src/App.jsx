@@ -8,11 +8,13 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [reportId, setReportId] = useState(null);
 
+  const serverBaseUrl = "http://localhost:5000";
+
   const handleCompare = async () => {
     setLoading(true);
     setReportId(null);
     try {
-      const response = await fetch("http://localhost:5000/compare", {
+      const response = await fetch(`${serverBaseUrl}/compare`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,6 +33,7 @@ function App() {
     <>
       <h1>Visual Diff</h1>
       <div className="card">
+        <p>Provide the URLs of the web pages that you want to compare.</p>
         <input
           type="text"
           placeholder="Reference URL"
@@ -69,13 +72,11 @@ function App() {
 
         {reportId && (
           <div>
-            <a href={`${reportId}`} target="_blank" rel="noopener noreferrer">
+            <a href={`${serverBaseUrl}/reports/${reportId}`} target="_blank" rel="noopener noreferrer">
               Open Report
             </a>
           </div>
         )}
-
-        <p>Provide the URLs of the web pages that you want to compare.</p>
       </div>
     </>
   );

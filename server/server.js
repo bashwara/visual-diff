@@ -1,12 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const path = require("path");
 const backstop = require("backstopjs");
 const ULID = require("ulid");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve all backstop generated content statically
+app.use("/reports", express.static(path.join(__dirname, "backstop_data/html_report")));
+app.use("/bitmaps_reference", express.static(path.join(__dirname, "backstop_data/bitmaps_reference")));
+app.use("/bitmaps_test", express.static(path.join(__dirname, "backstop_data/bitmaps_test")));
 
 const BACKSTOP_CONFIG_PATH = "./backstop.json";
 
@@ -76,7 +82,7 @@ app.post("/compare", (req, res) => {
       html_report: `backstop_data/html_report/${runId}`,
       ci_report: `backstop_data/ci_report/${runId}`,
     },
-    report: ["browser"],
+    report: [],
     engine: "puppeteer",
     engineOptions: {
       args: ["--no-sandbox"],
@@ -125,6 +131,18 @@ app.post("/compare", (req, res) => {
         message: error.message,
       });
     });
+});
+
+// Endpoint to get report by ID
+app.get("/reports/:id", (req, res) => {
+  const reportId = req.params.id;
+  const reportPath = path.join(__dirname, "backstop_data", "html_report", reportId);
+  
+  if (!fs.existsSync(reportPath)) {
+    return res.status(404).json({ error: "Report not found" });
+  }
+
+  res.sendFile(path.join(reportPath, "index.html"));
 });
 
 // Start server
