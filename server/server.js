@@ -1,12 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const fs = require("fs");
 const backstop = require("backstopjs");
+const ULID = require("ulid");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 const BACKSTOP_CONFIG_PATH = "./backstop.json";
 
@@ -38,6 +38,10 @@ app.post("/compare", (req, res) => {
     now.getMinutes().toString().padStart(2, "0") +
     now.getSeconds().toString().padStart(2, "0");
 
+  runId = ULID.ulid();
+
+  console.log("runId:", runId);
+
   // Update backstop.json with the provided URLs
   const backstopConfig = {
     id: "ui_comparison",
@@ -58,7 +62,7 @@ app.post("/compare", (req, res) => {
         hoverSelector: "",
         clickSelector: "",
         postInteractionWait: 0,
-        selectors: ["document"],
+        selectors: [],
         selectorExpansion: true,
         expect: 0,
         misMatchThreshold: 0.1,
@@ -66,11 +70,11 @@ app.post("/compare", (req, res) => {
       },
     ],
     paths: {
-      bitmaps_reference: "backstop_data/bitmaps_reference/" + datetime,
-      bitmaps_test: "backstop_data/bitmaps_test",
+      bitmaps_reference: `backstop_data/bitmaps_reference/${runId}/${datetime}`,
+      bitmaps_test: `backstop_data/bitmaps_test/${runId}`,
       engine_scripts: "backstop_data/engine_scripts",
-      html_report: "backstop_data/html_report",
-      ci_report: "backstop_data/ci_report",
+      html_report: `backstop_data/html_report/${runId}`,
+      ci_report: `backstop_data/ci_report/${runId}`,
     },
     report: ["browser"],
     engine: "puppeteer",
@@ -94,9 +98,7 @@ app.post("/compare", (req, res) => {
         .then(() => {
           return res.json({
             message: "Comparison complete",
-            reportUrl: `file:///${process
-              .cwd()
-              .replace(/\\/g, "/")}/backstop_data/html_report/index.html`,
+            reportId: runId,
           });
         })
         .catch((error) => {
@@ -105,9 +107,7 @@ app.post("/compare", (req, res) => {
           if (error.message.includes("Mismatch errors found")) {
             return res.json({
               message: "Comparison complete with differences",
-              reportUrl: `file:///${process
-                .cwd()
-                .replace(/\\/g, "/")}/backstop_data/html_report/index.html`,
+              reportId: runId,
             });
           }
 

@@ -4,13 +4,13 @@ import "./App.css";
 function App() {
   const [referenceUrl, setReferenceUrl] = useState("");
   const [testUrl, setTestUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [reportUrl, setReportUrl] = useState(null);
   const [viewportType, setViewportType] = useState("desktop");
+  const [loading, setLoading] = useState(false);
+  const [reportId, setReportId] = useState(null);
 
   const handleCompare = async () => {
     setLoading(true);
-    setReportUrl(null);
+    setReportId(null);
     try {
       const response = await fetch("http://localhost:5000/compare", {
         method: "POST",
@@ -20,7 +20,7 @@ function App() {
         body: JSON.stringify({ referenceUrl, testUrl, viewportType }),
       });
       const data = await response.json();
-      setReportUrl(data.reportUrl);
+      setReportId(data.reportId);
     } catch (error) {
       alert("Error running BackstopJS comparison", error.message);
     }
@@ -67,9 +67,9 @@ function App() {
           {loading ? "Comparing..." : "Compare"}
         </button>
 
-        {reportUrl && (
+        {reportId && (
           <div>
-            <a href={`${reportUrl}`} target="_blank" rel="noopener noreferrer">
+            <a href={`${reportId}`} target="_blank" rel="noopener noreferrer">
               Open Report
             </a>
           </div>
