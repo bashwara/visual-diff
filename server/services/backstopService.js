@@ -15,13 +15,15 @@ class BackstopService {
   generateConfig(referenceUrl, testUrl, viewportType) {
     const runId = ULID.ulid();
     const datetime = this.generateDatetimeString();
-    const viewport = config.viewports[viewportType] || config.viewports.desktop;
+
+    const viewportLabel = config.viewports.hasOwnProperty(viewportType) ? viewportType : 'desktop';
+    const viewport = config.viewports[viewportLabel];
 
     logger.info(`Creating backstop config with runId: ${runId}`);
 
     const backstopConfig = {
       id: "ui_comparison",
-      viewports: [{ label: viewportType || "desktop", ...viewport }],
+      viewports: [{ label: viewportLabel, ...viewport }],
       onBeforeScript: "puppet/onBefore.js",
       onReadyScript: "puppet/onReady.js",
       scenarios: [
@@ -63,7 +65,7 @@ class BackstopService {
       debugWindow: true,
     };
 
-    return { config: backstopConfig, runId, datetime };
+    return { config: backstopConfig, runId, datetime, viewportLabel };
   }
 
   /**
@@ -115,13 +117,32 @@ class BackstopService {
   }
 
   /**
-   * Get reference image path
+   * Get test image path
    */
-  getReferenceImagePath(runId, datetime) {
-    return path.join(
-      config.paths.backstopData,
-      `bitmaps_reference/${runId}/${datetime}/ui_comparison_UI_Comparison_0_document_0_desktop.png`
-    );
+  getTestImagePath(runId, viewport) {
+    const testBaseDir = path.join(config.paths.backstopData, `bitmaps_test/${runId}`);
+    console.log("viewport", viewport);
+    
+    try {
+      // Read the directory to find the test folder (assuming only one exists)
+      const folders = fs.readdirSync(testBaseDir);
+      
+      if (folders.length === 0) {
+        logger.error(`No test folders found in ${testBaseDir}`);
+        throw new Error(`No test folder found in ${testBaseDir}`);
+      }
+      
+      const testFolder = folders[0]; // Take the first (and presumably only) folder
+      logger.info(`Found test folder: ${testFolder}`);
+      
+      return path.join(
+        config.paths.backstopData,
+        `bitmaps_test/${runId}/${testFolder}/ui_comparison_UI_Comparison_0_document_0_${viewport}.png`
+      );
+    } catch (err) {
+      logger.error(`Error getting test image path for runId ${runId}:`, err);
+      throw err;
+    }
   }
 
   /**
@@ -132,9 +153,9 @@ class BackstopService {
   }
 
   /**
-   * Check if reference image exists
+   * Check if test image exists
    */
-  referenceImageExists(imagePath) {
+  testImageExists(imagePath) {
     return fs.existsSync(imagePath);
   }
 

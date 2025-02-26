@@ -24,7 +24,7 @@ const compareController = {
       logger.info("Starting comparison", { referenceUrl, testUrl, viewportType });
       
       // Generate backstop config
-      const { config: backstopConfig, runId, datetime } = backstopService.generateConfig(
+      const { config: backstopConfig, runId, datetime, viewportLabel } = backstopService.generateConfig(
         referenceUrl, 
         testUrl, 
         viewportType
@@ -41,18 +41,18 @@ const compareController = {
         // Run backstop test
         await backstopService.runTest();
         
-        // Get reference image path
-        const referencePath = backstopService.getReferenceImagePath(runId, datetime);
+        // Get test image path
+        const testImagePath = backstopService.getTestImagePath(runId, viewportLabel);
         const reportFolderPath = backstopService.getReportFolderPath(runId);
         
-        // Check if reference image exists
-        if (backstopService.referenceImageExists(referencePath)) {
+        // Check if test image exists
+        if (backstopService.testImageExists(testImagePath)) {
           try {
             // Get LLM service based on configuration
             const llmService = llmFactory.getService();
             
             // Get AI feedback using the selected service
-            const aiResponse = await llmService.getUIFeedback(referencePath);
+            const aiResponse = await llmService.getUIFeedback(testImagePath);
             
             // Save the AI response
             llmService.saveFeedback(reportFolderPath, aiResponse);
@@ -75,9 +75,9 @@ const compareController = {
             });
           }
         } else {
-          logger.warn(`Reference image not found: ${referencePath}`);
+          logger.warn(`Test image not found: ${testImagePath}`);
           return res.json({
-            message: "Comparison complete, reference image not found for LLM",
+            message: "Comparison complete, test image not found for LLM",
             reportId: runId,
           });
         }
