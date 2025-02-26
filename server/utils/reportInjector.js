@@ -222,7 +222,7 @@ const reportInjector = {
         try {
           let response;
         
-          response = await fetch('./claude_feedback.json');
+          response = await fetch('./llm_feedback.json');
           
           if (!response || !response.ok) {
             throw new Error('Could not load LLM feedback');

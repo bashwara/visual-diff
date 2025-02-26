@@ -3,8 +3,18 @@ const path = require("path");
 
 const config = {
   port: process.env.PORT || 5000,
+  
+  // LLM Provider Configuration
+  llmProvider: process.env.LLM_PROVIDER || "anthropic", // "anthropic" or "openai"
+  
+  // Anthropic Configuration
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   anthropicModel: process.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-latest",
+  
+  // OpenAI Configuration
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  openaiModel: process.env.OPENAI_MODEL || "gpt-4o",
+  
   backstopConfigPath: "./backstop.json",
   paths: {
     backstopData: path.join(__dirname, "backstop_data"),
@@ -21,9 +31,12 @@ const config = {
   }
 };
 
-// Validate required configuration
-if (!config.anthropicApiKey) {
+// Validate required configuration based on provider
+if (config.llmProvider === "anthropic" && !config.anthropicApiKey) {
   console.error("ERROR: Missing ANTHROPIC_API_KEY environment variable");
+  process.exit(1);
+} else if (config.llmProvider === "openai" && !config.openaiApiKey) {
+  console.error("ERROR: Missing OPENAI_API_KEY environment variable");
   process.exit(1);
 }
 

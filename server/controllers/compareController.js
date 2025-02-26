@@ -1,10 +1,8 @@
 const backstopService = require("../services/backstopService");
-const anthropicService = require("../services/anthropicService");
+const llmFactory = require("../services/llmFactory");
 const reportInjector = require("../utils/reportInjector");
 const logger = require("../utils/logger");
 const config = require("../config");
-const fs = require("fs");
-const path = require("path");
 
 /**
  * Controller handling UI comparison operations
@@ -50,11 +48,14 @@ const compareController = {
         // Check if reference image exists
         if (backstopService.referenceImageExists(referencePath)) {
           try {
-            // Get AI feedback
-            const claudeResponse = await anthropicService.getUIFeedback(referencePath);
+            // Get LLM service based on configuration
+            const llmService = llmFactory.getService();
+            
+            // Get AI feedback using the selected service
+            const aiResponse = await llmService.getUIFeedback(referencePath);
             
             // Save the AI response
-            anthropicService.saveFeedback(reportFolderPath, claudeResponse);
+            llmService.saveFeedback(reportFolderPath, aiResponse);
             
             // Inject custom script into report
             reportInjector.injectCustomScriptIntoReport(reportFolderPath);
@@ -62,6 +63,7 @@ const compareController = {
             return res.json({
               message: "Comparison complete with LLM feedback",
               reportId: runId,
+              llmProvider: config.llmProvider
             });
           } catch (err) {
             logger.error("AI feedback generation failed", err);
